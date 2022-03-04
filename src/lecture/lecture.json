@@ -131,7 +131,7 @@
             },
             {
                 "title": "empty",
-                "code": "// console는 rx-playground에서 제공되는 observer이며, console.log로 출력한다.\nconst observer = console('EMPTY');\n\n// empty()는 빈 observable이다.\nempty().subscribe(observer);\n\n// deprecated되었고 EMPTY를 사용하자.\nEMPTY.subscribe(observer);\n",
+                "code": "// console는 rx-playground에서 제공되는 observer이며, console.log로 출력한다.\nconst testObserver = console('test')\ntestObserver.next(1);\ntestObserver.error(1);\ntestObserver.complete();\n\n// empty()는 빈 observable이다.\nempty().subscribe(console('empty'));\n\n// deprecated되었고 EMPTY를 사용하자.\nEMPTY.subscribe(console('EMPTY'));\n",
                 "id": "3.5",
                 "note": "empty"
             },
