@@ -1,0 +1,1030 @@
+
+[
+    {
+        "title": "Observable",
+        "sections": [
+            {
+                "title": "basics 01",
+                "code": "const observable = new Observable(subscribe => {\n  // subscribe 할때 callback 함수가 호출된다.\n  console.log('subscribed');\n});\n\nobservable.subscribe();\n",
+                "id": "1.1",
+                "note": "basics 01"
+            },
+            {
+                "title": "basics 02",
+                "code": "const observable = new Observable(subscribe => {\n  // subscribe 할때마다 callback 함수가 호출된다.\n  console.log('subscribed');\n});\n\nobservable.subscribe();\nobservable.subscribe();\nobservable.subscribe();\nobservable.subscribe();\n",
+                "id": "1.2",
+                "note": "basics 02"
+            },
+            {
+                "title": "basics 03",
+                "code": "let count = 0;\nconst observable = new Observable(subscribe => {\n  const nth = ++count;\n  console.log(`${nth}th observer subscribed`);\n\n  // callback 함수를 리턴하면, unsubscribe 시에 호출된다.\n  return () => console.log(`${nth}th observer unsubscribed`);\n});\n\nobservable.subscribe().unsubscribe();\nobservable.subscribe().unsubscribe();\nobservable.subscribe().unsubscribe();\n",
+                "id": "1.3",
+                "note": "basics 03"
+            },
+            {
+                "title": "basics 04",
+                "code": "const observable = new Observable(subscribe => {\n  // next() 함수를 호출하면, observer에 값을 보낼 수 있다.\n  subscribe.next(1);\n  subscribe.next(2);\n  subscribe.next(3);\n});\n\nconst observer = {\n  next: v => console.log('observed value', v),\n  error: e => console.log('observed error', e),\n  complete: () => console.log('completed'),\n}\n\nobservable.subscribe(observer);\n",
+                "id": "1.4",
+                "note": "basics 04"
+            },
+            {
+                "title": "basics 05",
+                "code": "const observable = new Observable(subscribe => {\n  subscribe.next(1);\n  subscribe.next(2);\n  subscribe.next(3);\n  // error도 보낼 수 있다\n  subscribe.error(-999);\n});\n\nconst observer = {\n  next: v => console.log('observed value', v),\n  error: e => console.log('observed error', e),\n  complete: () => console.log('completed'),\n}\n\nobservable.subscribe(observer);\n",
+                "id": "1.5",
+                "note": "basics 05"
+            },
+            {
+                "title": "basics 06",
+                "code": "const observable = new Observable(subscribe => {\n  subscribe.next(1);\n  subscribe.next(2);\n  subscribe.next(3);\n\n  // 예외가 발생되어도 error()를 호출한다\n  throw new Error('my error');\n});\n\nconst observer = {\n  next: v => console.log('observed value', v),\n  error: e => console.log('observed error', e),\n  complete: () => console.log('completed'),\n}\n\nobservable.subscribe(observer);\n",
+                "id": "1.6",
+                "note": "basics 06"
+            },
+            {
+                "title": "basics 07",
+                "code": "const observable = new Observable(subscribe => {\n  subscribe.next(1);\n  subscribe.next(2);\n  subscribe.next(3);\n\n  // complete()는 명시적으로 호출해야한다\n  subscribe.complete();\n});\n\nconst observer = {\n  next: v => console.log('observed value', v),\n  error: e => console.log('observed error', e),\n  complete: () => console.log('completed'),\n}\n\nobservable.subscribe(observer);\n",
+                "id": "1.7",
+                "note": "basics 07"
+            },
+            {
+                "title": "basics 08",
+                "code": "const observable = new Observable(subscribe => {\n  subscribe.next(1);\n  subscribe.next(2);\n  subscribe.next(3);\n  subscribe.error(-999);\n\n  // 한번 에러를 발생하면 끝이다\n  subscribe.next(4);\n  subscribe.error(-999);\n  subscribe.complete();\n});\n\nconst observer = {\n  next: v => console.log('observed value', v),\n  error: e => console.log('observed error', e),\n  complete: () => console.log('completed'),\n}\n\nobservable.subscribe(observer);\n",
+                "id": "1.8",
+                "note": "basics 08"
+            },
+            {
+                "title": "basics 09",
+                "code": "const observable = new Observable(subscribe => {\n  subscribe.next(1);\n  subscribe.next(2);\n  subscribe.next(3);\n  subscribe.complete();\n\n  // complete() 호출해도 끝이다.\n  subscribe.next(4);\n  subscribe.error(-999);\n  subscribe.complete();\n});\n\nconst observer = {\n  next: v => console.log('observed value', v),\n  error: e => console.log('observed error', e),\n  complete: () => console.log('completed'),\n}\n\nobservable.subscribe(observer);\n",
+                "id": "1.9",
+                "note": "basics 09"
+            },
+            {
+                "title": "basics 10",
+                "code": "const observable = new Observable(subscribe => {\n  let count = 0;\n  const interval = setInterval(() => {\n    console.log('interval called');\n    subscribe.next(++count);\n  }, 1000);\n\n  return () => {\n    // unsubscribe시에 resource를 정리할 수 있다.\n    clearInterval(interval);\n    console.log('interval cleared');\n  }\n});\n\nconst observer = {\n  next: v => console.log('observed value', v),\n  error: e => console.log('observed error', e),\n  complete: () => console.log('completed'),\n}\n\nconst subscription = observable.subscribe(observer);\nsetTimeout(() => {\n  subscription.unsubscribe();\n}, 3000);\n",
+                "id": "1.10",
+                "note": "basics 10"
+            }
+        ],
+        "id": "1"
+    },
+    {
+        "title": "Subjects",
+        "sections": [
+            {
+                "title": "basics",
+                "code": "/* -------------------------------------------------------------\n\n  subject의 특징\n\n  - subject는 Observable이자 Observer이다.\n\n  - subject는 multicasting 된다.\n      Observable은 중복해서 subscribe하면 각자 다른 source가 생성되지만,\n      Subject는 하나의 source가 공유된다.\n\n  - subject는 Subject, BehaviorSubject, ReplaySubject, AsyncSubject가 있다.\n\n   ------------------------------------------------------------  */\n",
+                "id": "2.1",
+                "note": "basics"
+            },
+            {
+                "title": "Subject",
+                "code": "// Subject는 subscribe한 이후의 값을 받는다.\nconst subject = new Subject();\n\nconst sub1 = subject.subscribe(console('ob1'));\nsubject.next(1);  // ob1이 받는다\n\nconst sub2 = subject.subscribe(console('ob2'));\nsubject.next(2);  // ob1, ob2가 받는다\n\nsub2.unsubscribe();\nsubject.next(3);  // ob1이 받는다\n\nsub1.unsubscribe();\nsubject.next(4);  // 아무도 못 받는다\n\nconst sub3 = subject.subscribe(console('ob3'));\nsubject.next(5);  // ob3가 받는다\n\nsubject.error(-999);  // ob3가 에러를 받는다\nsubject.next(6);  // 무시된다\n\nconst sub4 = subject.subscribe(console('ob4')); // 에러를 받고 종료된다.\n",
+                "id": "2.2",
+                "note": "Subject"
+            },
+            {
+                "title": "BehaviorSubject",
+                "code": "/*\nclass BehaviorSubject<T> extends Subject {\n  constructor(_value: T)  ; _value는 초기값\n  ...\n}\n\n Subject와 유사하나 subscribe시 무조건 가장 최신값을 먼저 받고 시작한다.\n*/\n\n// 초기값을 지정하지 않으면, undefined가 들어간다.\nconst subject = new BehaviorSubject(0);\n\nsubject.subscribe(console('ob1'));  // 초기값인 0를 받는다\nsubject.next(1);  // ob1에 전달된다\nsubject.next(2);  // ob1에 전달된다\n\nsubject.subscribe(console('ob2'));  // 최신값인 2를 먼저 받는다\n\nsubject.next(3);  // ob1, ob2에 전달된다\n",
+                "id": "2.3",
+                "note": "BehaviorSubject"
+            },
+            {
+                "title": "ReplaySubject",
+                "code": "/*\n\nclass ReplaySubject<T> extends Subject {\n  constructor(\n    _bufferSize: number = Infinity,\n    _windowTime: number = Infinity,\n    _timestampProvider: TimestampProvider = dateTimestampProvider);\n  ...\n}\n\n  - ReplaySubject는 windowTime 동안의 최대 bufferSize만큼의 개수를 기억하고 있다가,\n    subscribe시에 바로 보내주고 시작한다. 값을 지정하지 않으면 무한대로 기억한다.\n*/\n\nconst subject = new ReplaySubject(2);\nsubject.next(1);\nsubject.next(2);\nsubject.next(3);\n\nconsole.log('ob1 subscribe -------------------------');\nsubject.subscribe(console('ob1'));  // 2, 3을 먼저 받는다.\nconsole.log('ob1 subscribed ------------------------');\nsubject.next(4);  // ob1에 전달된다\n\nconsole.log('ob2 subscribe -------------------------');\nsubject.subscribe(console('ob2'));  // 3, 4를 먼저 받는다.\nconsole.log('ob2 subscribed ------------------------');\n\nsubject.next(5);    // ob1, ob2에 전달된다\nsubject.complete(); // ob1, ob2에 전달된다\nconsole.log('subject completed =====================');\n\nconsole.log('ob3 subscribe -------------------------');\nsubject.subscribe(console('ob3'));  // 4, 5를 받고 끝난다.\nconsole.log('ob3 subscribed ------------------------');\n\n",
+                "id": "2.4",
+                "note": "ReplaySubject"
+            },
+            {
+                "title": "AsyncSubject",
+                "code": "// AsyncSubject는 complete후에 마지막 값만 전달한다.\n\nconst subject = new AsyncSubject();\n\nsubject.next(1);\nsubject.next(2);\n\nsubject.subscribe(console('ob1'));\nsubject.next(3);\nsubject.next(4);\nsubject.next(5);\n\nconsole.log('subject complete -------------------')\nsubject.complete();   // ob1이 5를 받고 종료된다.\n\n\nsubject.subscribe(console('ob2'));  // 5를 받고 종료된다.\nsubject.subscribe(console('ob3'));  // 5를 받고 종료된다.\n",
+                "id": "2.5",
+                "note": "AsyncSubject"
+            }
+        ],
+        "id": "2"
+    },
+    {
+        "title": "creation operators",
+        "sections": [
+            {
+                "title": "of",
+                "code": "// of()는 정해진 값을 반환하는 observable을 만든다\nconst observable = of(1, 2, 3);\n\nobservable.subscribe({\n  next: console.log,\n  complete: () => console.log('completed'),\n});\n",
+                "id": "3.1",
+                "note": "of"
+            },
+            {
+                "title": "interval",
+                "code": "// interval은 지정된 시간마다 값을 전달한다\nconst subscription = interval(1000)\n  .subscribe({\n    next: console.log,\n    // 애석하게도 호출되지 않는다\n    complete: () => console.log('completed'),\n  });\n\nsetTimeout(() => {\n  // 4초뒤 unsubscribe 한다\n  subscription.unsubscribe();\n  console.log('unsubscribed');\n}, 4000);\n",
+                "id": "3.2",
+                "note": "interval"
+            },
+            {
+                "title": "timer 01",
+                "code": "// timer는 지정된 시간 이후에 한번 값을 전달한다\nconst subscription = timer(1000)\n  .subscribe({\n    // 값은 0으로 한번 호출된다\n    next: console.log,\n    // 호출된다\n    complete: () => console.log('completed'),\n  });\n\nsetTimeout(() => {\n  // 1초뒤 complete 되었지만, 4초뒤 unsubscribe 해 보자\n  subscription.unsubscribe();\n  console.log('unsubscribed');\n}, 4000);",
+                "id": "3.3",
+                "note": "timer 01"
+            },
+            {
+                "title": "timer 02",
+                "code": "// timer를 interval처럼 쓸 수도 있다\n// 0초에 시작하고, 매 1초마다 발생한다\nconst subscription = timer(0, 1000)\n  .subscribe({\n    // 값은 0, 1, 2, ...\n    next: console.log,\n    // 애석하게도 호출되지 않는다\n    complete: () => console.log('completed'),\n  });\n\nsetTimeout(() => {\n  // 4초뒤 unsubscribe 한다\n  subscription.unsubscribe();\n  console.log('unsubscribed');\n}, 4000);\n",
+                "id": "3.4",
+                "note": "timer 02"
+            },
+            {
+                "title": "empty",
+                "code": "// console는 rx-playground에서 제공되는 observer이며, console.log로 출력한다.\nconst observer = console('EMPTY');\n\n// empty()는 빈 observable이다.\nempty().subscribe(observer);\n\n// deprecated되었고 EMPTY를 사용하자.\nEMPTY.subscribe(observer);\n",
+                "id": "3.5",
+                "note": "empty"
+            },
+            {
+                "title": "range",
+                "code": "// 10부터 숫자 3개를 전달한다\nrange(10, 3).subscribe(console('range'));\n",
+                "id": "3.6",
+                "note": "range"
+            },
+            {
+                "title": "generate",
+                "code": "// generate는 for와 동일하다\ngenerate(0, i => i < 10, i => i + 1)\n  .subscribe(console('generate'));\n",
+                "id": "3.7",
+                "note": "generate"
+            },
+            {
+                "title": "defer 01",
+                "code": "// defer는 subscribe될때까지 observerable의 생성을 지연한다.\nconst observable = defer(() => {\n  console.log('of() observable created');\n  return of(1, 2, 3);\n})\nconsole.log('defer() observable created');\n\nsetTimeout(() => {\n  observable.subscribe(console('defer'));\n}, 1000);\n",
+                "id": "3.8",
+                "note": "defer 01"
+            },
+            {
+                "title": "defer 02",
+                "code": "// defer는 subscribe될때까지 observerable의 생성을 지연한다.\nconst observable = defer(() => {\n  // subscribe하지 않아 절대 호출되지 않는다\n  console.log('of() observable created');\n  return of(1, 2, 3);\n})\nconsole.log('defer() observable created');\n",
+                "id": "3.9",
+                "note": "defer 02"
+            },
+            {
+                "title": "defer 03",
+                "code": "// defer는 observable의 종류도 바꿀 수 있다\nconst observable = defer(() => {\n  return Math.random() < 0.5  \n    ? of(1, 2, 3)\n    : of('one', 'two', 'three');\n})\n\nobservable.subscribe(console('defer'));\n",
+                "id": "3.10",
+                "note": "defer 03"
+            },
+            {
+                "title": "throwError",
+                "code": "// throwError()는 error를 발생하는 observable을 생성한다.\nthrowError(() => -999)\n  .subscribe(console('throwError'));",
+                "id": "3.11",
+                "note": "throwError"
+            },
+            {
+                "title": "iif",
+                "code": "let lang = 'ko'\n\n// iif는 if와 유사하다\nconst $observable = iif(\n  () => lang === 'ko',      // condition\n  of('하나', '둘'),          // then\n  of('one', 'two')          // else\n);\n\nlang = 'ko';\n$observable.subscribe(console('iif = ko'));\n\nlang = 'en';\n$observable.subscribe(console('iif = en'));\n",
+                "id": "3.12",
+                "note": "iif"
+            },
+            {
+                "title": "ajax",
+                "code": "const obs$ = ajax('https://api.github.com/users?per_page=5');\n\nobs$.subscribe({\n  next: v => console.log(JSON.stringify(v.response.map(p => p.login), null, 4)),\n  error: e => console.error(e),\n  complete: () => console.log('completed'),\n});\n",
+                "id": "3.13",
+                "note": "ajax"
+            },
+            {
+                "title": "bindCallback 01",
+                "code": "const computeNthPrimeNumber = (nth, cb) => {\n  setTimeout(() => cb(null, `I don't know ${nth}th prime number`), 1000);\n};\n\n// callback으로 결과를 전달하는 함수를 observable로 바꿔준다.\n// 해당함수는 callback의 위치가 마지막이어야 한다.\nconst computePrimeNumber = bindCallback(computeNthPrimeNumber);\ncomputePrimeNumber(100000)\n  .subscribe(console('bindCallback'));\n",
+                "id": "3.14",
+                "note": "bindCallback 01"
+            },
+            {
+                "title": "bindCallback 02",
+                "code": "const myfunc = (cb) => {\n  cb(1, 2, 3);\n};\n\n// callback 함수의 파라메터가 여러개이면 array로 호출된다.\nconst bindedObservable = bindCallback(myfunc);\nbindedObservable()\n  .subscribe(console('bindCallback'));\n",
+                "id": "3.15",
+                "note": "bindCallback 02"
+            },
+            {
+                "title": "bindNodeCallback",
+                "code": "const divide = (p, q, cb) => {\n  if (q === 0) cb(new Error('divide by zero'));\n  else cb(null, p/q);\n};\n\n// nodejs 스타일의 callback을 지원한다 (callback에서 최초 인자가 Error)\nconst divideObservable = bindNodeCallback(divide);\n\ndivideObservable(10, 2).subscribe(console('10/2'));\ndivideObservable(10, 0).subscribe(console('10/0'));\n",
+                "id": "3.16",
+                "note": "bindNodeCallback"
+            },
+            {
+                "title": "from",
+                "code": "// from은 다양한 종류의 입력소스를 observable로 변환한다\n\n// array\nfrom([1, 2, 3])\n  .subscribe(console('from array'));\n\n// generator\nconst generator = function*() { yield 1; yield 2; };\nfrom(generator())\n  .subscribe(console('from generator'));\n\n// promise\nfrom(Promise.reject(-999))\n  .subscribe(console('from promise'));\n",
+                "id": "3.17",
+                "note": "from"
+            },
+            {
+                "title": "fromEvent",
+                "code": "// event를 observable로 변환한다\nconst subscription = fromEvent(document, 'mousemove')\n  .subscribe(console('mousemove'));\n\nsetTimeout(() => {\n  subscription.unsubscribe();\n  console.log('unsubscribed');\n}, 500);\n",
+                "id": "3.18",
+                "note": "fromEvent"
+            },
+            {
+                "title": "fromEventPattern",
+                "code": "function addClickHandler(handler) {\n  document.addEventListener('mousemove', handler);\n}\n \nfunction removeClickHandler(handler) {\n  document.removeEventListener('mousemove', handler);\n}\n\n// handler 함수를 등록하는 방식을 observable로 전환한다\nconst clicks = fromEventPattern(\n  addClickHandler,\n  removeClickHandler\n);\n\nconst subscription = clicks.subscribe(console('fromEventPattern'));\nsetTimeout(() => subscription.unsubscribe(), 500);\n",
+                "id": "3.19",
+                "note": "fromEventPattern"
+            }
+        ],
+        "id": "3"
+    },
+    {
+        "title": "join creation operators",
+        "sections": [
+            {
+                "title": "combineLatest 01",
+                "code": "const ob1 = timer(0, 1000);\nconst ob2 = timer(500, 1000);\n\n// observable들의 값이 변화할때마다, 최종값을 조합해서 반환한다.\n// 단) 모든 값을 읽은 이후에만 적용된다.\nconst sub1 = combineLatest([ob1, ob2])\n  .subscribe(console('combineLatest array'));\n\nsetTimeout(() => {\n  sub1.unsubscribe();\n  console.log('unsubscribed');\n}, 1500);\n",
+                "id": "4.1",
+                "note": "combineLatest 01"
+            },
+            {
+                "title": "combineLatest 02",
+                "code": "const ob1 = timer(0, 1000);\nconst ob2 = timer(500, 1000);\n\n// array대신 object로 반환한다\nconst sub1 = combineLatest({ ob1, ob2 })\n  .subscribe(console('combineLatest object'));\n\nsetTimeout(() => {\n  sub1.unsubscribe();\n  console.log('unsubscribed');\n}, 1500);\n",
+                "id": "4.2",
+                "note": "combineLatest 02"
+            },
+            {
+                "title": "concat",
+                "code": "const after = (ms, val) => new Observable(subscribe => {\n  setTimeout(() => {\n    subscribe.next(val);\n    subscribe.complete();\n  }, ms);\n});\n\n// 각각의 observable들을 순서대로 합친다\nconcat(after(3000, \"1st\"), after(2000, \"2nd\"), of(\"3rd\"))\n  .subscribe(console('concat'));\n",
+                "id": "4.3",
+                "note": "concat"
+            },
+            {
+                "title": "merge",
+                "code": "const after = (ms, val) => new Observable(subscribe => {\n  setTimeout(() => {\n    subscribe.next(val);\n    subscribe.complete();\n  }, ms);\n});\n\n// 각각의 observable들을 도착하는 순서대로 합친다\nmerge(after(3000, \"1st\"), after(2000, \"2nd\"), of(\"3rd\"))\n  .subscribe(console('merge'));\n",
+                "id": "4.4",
+                "note": "merge"
+            },
+            {
+                "title": "race",
+                "code": "const after = (ms, val) => new Observable(subscribe => {\n  setTimeout(() => {\n    subscribe.next(val);\n    subscribe.complete();\n  }, ms);\n});\n\n// 최초에 도착하는 observable 만을 선택한다\nrace(after(3000, \"1st\"), after(2000, \"2nd\"), of(\"3rd\"))\n  .subscribe(console('race'));\n",
+                "id": "4.5",
+                "note": "race"
+            },
+            {
+                "title": "zip",
+                "code": "// 각 observable 들을 묶어서 전달한다.\nzip(of(1, 2, 3), of('one', 'two', 'three'))\n  .subscribe(console('zip'));\n\n// combineLatest는 변경될때마다 전달하지만, zip은 매번 모든 값이 업데이트되면 전달한다.\ncombineLatest(of(1, 2, 3), of('one', 'two', 'three'))\n  .subscribe(console('combineLatest'));\n",
+                "id": "4.6",
+                "note": "zip"
+            },
+            {
+                "title": "partition",
+                "code": "const observable = of(1, 2, 3, 4, 5, 6);\n\n// partition은 원래 observable를 2개의 observable로 나눈다\nconst [evens$, odds$] = partition(\n  observable,\n  (value, index) => value % 2 === 0,\n);\n\nevens$.subscribe(console('evens'));\nevens$.subscribe(console('odds'));\n",
+                "id": "4.7",
+                "note": "partition"
+            },
+            {
+                "title": "forkJoin 01",
+                "code": "const observable = forkJoin({\n  foo: of(1, 2, 3, 4),\n  bar: Promise.resolve(8),\n  baz: timer(2000),\n});\n\n// 모든 observable이 끝나기를 기다렸다가, 최종값을 모아 반환한다.\nobservable.subscribe(console('forkJoin'));\n",
+                "id": "4.8",
+                "note": "forkJoin 01"
+            },
+            {
+                "title": "forkJoin 02",
+                "code": "const observable = forkJoin([\n  of(1, 2, 3, 4),\n  Promise.resolve(8),\n  timer(2000),\n]);\n\n// array도 가능\nobservable.subscribe(console('forkJoin - array'));\n",
+                "id": "4.9",
+                "note": "forkJoin 02"
+            }
+        ],
+        "id": "4"
+    },
+    {
+        "title": "pipable operator",
+        "sections": [
+            {
+                "title": "basic 01",
+                "code": "// x2() 함수는 observable을 받아서 2배값을 리턴하는 observable로 변환한다\nfunction x2(orig) {\n  return new Observable(subscribe => {\n    // 자신이 subscribe되면 원래 observable (orig)에 subscribe한다.\n    const subscription = orig.subscribe({\n      next: v => subscribe.next(v * 2),   // 값을 2배로\n      error: e => subscribe.error(e),\n      complete: () => subscribe.complete(),\n    });\n\n    return () => subscription.unsubscribe();  // very important\n  });\n}\n\nconst original = of(1, 2, 3);\nconst originalx2 = x2(original);\n\noriginal.subscribe(console('original'));\noriginalx2.subscribe(console('originalx2'));\n",
+                "id": "5.1",
+                "note": "basic 01"
+            },
+            {
+                "title": "basic 02",
+                "code": "// 함수를 리턴하는 함수로 바꾸자\nfunction multiply(multiplier) {\n  return function(orig) {\n    return new Observable(subscribe => {\n      const subscription = orig.subscribe({\n        next: v => subscribe.next(v * multiplier), // v*2 ==> v*multiplier\n        error: e => subscribe.error(e),\n        complete: () => subscribe.complete(),\n      });\n\n      return () => subscription.unsubscribe();\n    });\n  }\n}\nconst x2 = multiply(2);\n\nconst original = of(1, 2, 3);\nconst originalx2 = x2(original);\noriginalx2.subscribe(console('originalx2'));\n",
+                "id": "5.2",
+                "note": "basic 02"
+            },
+            {
+                "title": "basic 03",
+                "code": "// 함수를 리턴하는 함수로 바꾸자\nfunction multiply(multiplier) {\n  return function(orig) {\n    return new Observable(subscribe => {\n      const subscription = orig.subscribe({\n        next: v => subscribe.next(v * multiplier), // v*2 ==> v*multiplier\n        error: e => subscribe.error(e),\n        complete: () => subscribe.complete(),\n      });\n\n      return () => subscription.unsubscribe();\n    });\n  }\n}\nconst x2 = multiply(2);\n\nconst original = of(1, 2, 3);\n\n// 함수 chain을 구성해서 여러번 변환을 거친다.\nconst originalx4 = x2(x2(original));\noriginalx4.subscribe(console('originalx4'));\n",
+                "id": "5.3",
+                "note": "basic 03"
+            },
+            {
+                "title": "basic 04",
+                "code": "function multiply(multiplier) {\n  return function (orig) {\n    return new Observable(subscribe => {\n      const subscription = orig.subscribe({\n        next: v => subscribe.next(v * multiplier), // v*2 ==> v*multiplier\n        error: e => subscribe.error(e),\n        complete: () => subscribe.complete(),\n      });\n\n      return () => subscription.unsubscribe();\n    });\n  }\n}\n\n// 이것이 pipable operator이다.\nof(1, 2, 3)\n  .pipe(\n    multiply(2),\n    multiply(2),\n  )\n  .subscribe(console('originalx4'));\n",
+                "id": "5.4",
+                "note": "basic 04"
+            }
+        ],
+        "id": "5"
+    },
+    {
+        "title": "filtering operators",
+        "sections": [
+            {
+                "title": "filter",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    filter(v => v % 2 === 0)\n  )\n  .subscribe(console('evens'));\n",
+                "id": "6.1",
+                "note": "filter"
+            },
+            {
+                "title": "first",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    first()\n  )\n  .subscribe(console('first'));\n",
+                "id": "6.2",
+                "note": "first"
+            },
+            {
+                "title": "last",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    last()\n  )\n  .subscribe(console('last'));\n",
+                "id": "6.3",
+                "note": "last"
+            },
+            {
+                "title": "single",
+                "code": "of()  // 에러\n  .pipe(single())\n  .subscribe(console('[]'));\n\nof(1) // OK\n  .pipe(single())\n  .subscribe(console('[1]'));\n\nof(1, 2)  // 에러\n  .pipe(single())\n  .subscribe(console('[1, 2]'));\n",
+                "id": "6.4",
+                "note": "single"
+            },
+            {
+                "title": "skip",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    skip(2)\n  )\n  .subscribe(console('skip 2'));\n",
+                "id": "6.5",
+                "note": "skip"
+            },
+            {
+                "title": "take 01",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    skip(2),\n    take(2)\n  )\n  .subscribe(console('skip2 and take2'));\n",
+                "id": "6.6",
+                "note": "take 01"
+            },
+            {
+                "title": "take 02",
+                "code": "interval(100) // 영원히 지속되는 observable에 유용하다\n  .pipe(\n    take(10)\n  )\n  .subscribe(console('100ms x 10'));\n",
+                "id": "6.7",
+                "note": "take 02"
+            },
+            {
+                "title": "skipLast",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    skipLast(2)\n  )\n  .subscribe(console('skipLast 2'));\n",
+                "id": "6.8",
+                "note": "skipLast"
+            },
+            {
+                "title": "takeLast",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    takeLast(2)\n  )\n  .subscribe(console('takeLast 2'));\n",
+                "id": "6.9",
+                "note": "takeLast"
+            },
+            {
+                "title": "skipWhile",
+                "code": "of(1, 2, 3, 4, 5, 1)  // 마지막 1도 전달된다, filter가 아니다\n  .pipe(\n    skipWhile(v => v < 3)\n  )\n  .subscribe(console('skipWhile < 3'));\n",
+                "id": "6.10",
+                "note": "skipWhile"
+            },
+            {
+                "title": "takeWhile",
+                "code": "of(1, 2, 3, 4, 5, 1)    // 마지막 1은 전달되지 않는다, filter가 아니다\n  .pipe(\n    takeWhile(v => v < 3)\n  )\n  .subscribe(console('takeWhile < 3'));\n",
+                "id": "6.11",
+                "note": "takeWhile"
+            },
+            {
+                "title": "distinct",
+                "code": "of(1, 1, 2, 2, 2, 1, 2, 3, 4, 3, 2, 1)\n  .pipe(\n    distinct()\n  )\n  .subscribe(console('distinct'));\n",
+                "id": "6.12",
+                "note": "distinct"
+            },
+            {
+                "title": "elementAt",
+                "code": "of(0, 1, 2, 3, 4)\n  .pipe(\n    elementAt(3),\n  )\n  .subscribe(console('elementAt 3'));\n",
+                "id": "6.13",
+                "note": "elementAt"
+            },
+            {
+                "title": "auditTime",
+                "code": "const subscription = timer(500, 100)\n  .pipe(\n    filter(v => v < 5 || 25 < v),\n    // tap은 observable을 변경하지는 않지만, 중간에 꺼내 볼 수 있다.\n    tap(v => console.log('tap =', v)),\n    // auditTime은 이벤트를 일정기간동안 모으고, 마지막 이벤트만을 전달하기를 반복한다.\n    auditTime(1000)\n  )\n  .subscribe(console('auditTime 1s'));\n\nsetTimeout(() => subscription.unsubscribe(), 5000);\n",
+                "id": "6.14",
+                "note": "auditTime"
+            },
+            {
+                "title": "throttleTime",
+                "code": "const subscription = timer(500, 100)\n  .pipe(\n    filter(v => v < 5 || 25 < v),\n    // tap은 observable을 변경하지는 않지만, 중간에 꺼내 볼 수 있다.\n    tap(v => console.log('tap =', v)),\n    // throttleTime은 이벤트를 통과시킨후, 일정기간동안 이벤트를 버리기를 반복한다.\n    throttleTime(1000)\n  )\n  .subscribe(console('throttleTime 1s'));\n\nsetTimeout(() => subscription.unsubscribe(), 5000);\n",
+                "id": "6.15",
+                "note": "throttleTime"
+            },
+            {
+                "title": "sampleTime",
+                "code": "const subscription = timer(500, 100)\n  .pipe(\n    filter(v => v < 5 || 25 < v),\n    // tap은 observable을 변경하지는 않지만, 중간에 꺼내 볼 수 있다.\n    tap(v => console.log('tap =', v)),\n    // sampleTime은 주기적으로 마지막 이벤트를 샘플링해서 전달한다.\n    // 기간동안 이벤트가 없으면 생략되나, 이벤트가 있건 없건 샘플링의 주기가 딱 떨어진다.\n    sampleTime(1000)\n  )\n  .subscribe(console('sampleTime 1s'));\n\nsetTimeout(() => subscription.unsubscribe(), 5000);\n",
+                "id": "6.16",
+                "note": "sampleTime"
+            },
+            {
+                "title": "debounceTime",
+                "code": "const subscription = timer(500, 100)\n  .pipe(\n    filter(v => v < 5 || 25 < v),\n    // tap은 observable을 변경하지는 않지만, 중간에 꺼내 볼 수 있다.\n    tap(v => console.log('tap =', v)),\n    // debounceTime은 이벤트가 들어온 후 일정기간 더이상 들어오지 않으면 전달하고, 아니면 버린다.\n    // text 입력중 자동완성을 생각하면 쉽다\n    debounceTime(1000)\n  )\n  .subscribe(console('debounceTime 1s'));\n\nsetTimeout(() => subscription.unsubscribe(), 5000);\n",
+                "id": "6.17",
+                "note": "debounceTime"
+            },
+            {
+                "title": "audit",
+                "code": "const subscription = timer(500, 100)\n  .pipe(\n    filter(v => v < 5 || 25 < v),\n    // tap은 observable을 변경하지는 않지만, 중간에 꺼내 볼 수 있다.\n    tap(v => console.log('tap =', v)),\n    // audit은 auditTime과 달리 시간을 observable로 조절할 수 있다.\n    // 최초 이벤트가 들어오면 callback으로 observable을 요청하고,\n    // observable이 이벤트를 발생한 시점이 audit이 행해지는 시점이 된다.\n    audit(ev => timer(1000))\n  )\n  .subscribe(console('audit timer(1s)'));\n\nsetTimeout(() => subscription.unsubscribe(), 5000);\n",
+                "id": "6.18",
+                "note": "audit"
+            },
+            {
+                "title": "throttle",
+                "code": "const subscription = timer(500, 100)\n  .pipe(\n    filter(v => v < 5 || 25 < v),\n    // tap은 observable을 변경하지는 않지만, 중간에 꺼내 볼 수 있다.\n    tap(v => console.log('tap =', v)),\n    // throttle은 throttleTime과 달리 시간을 observable로 조절할 수 있다.\n    // 최초 이벤트가 들어오면 callback으로 observable을 요청하고,\n    // observable이 이벤트를 발생한 시점까지 이벤트를 막는다.\n    throttle(ev => timer(1000))\n  )\n  .subscribe(console('throttle timer(1s)'));\n\nsetTimeout(() => subscription.unsubscribe(), 5000);\n",
+                "id": "6.19",
+                "note": "throttle"
+            },
+            {
+                "title": "debounce",
+                "code": "const subscription = timer(500, 100)\n  .pipe(\n    filter(v => v < 5 || 25 < v),\n    // tap은 observable을 변경하지는 않지만, 중간에 꺼내 볼 수 있다.\n    tap(v => console.log('tap =', v)),\n    // debounce는 debounceTime의 시간을 observable로 조절한다.\n    // 입력이 들어오면 callback으로 observable을 요청하고,\n    // observable이 이벤트를 발생하기전까지 다른 이벤트가 없으면 기존 이벤트가 전달된다.\n    debounce(ev => timer(1000))\n  )\n  .subscribe(console('debounce timer(1s)'));\n\nsetTimeout(() => subscription.unsubscribe(), 5000);\n",
+                "id": "6.20",
+                "note": "debounce"
+            },
+            {
+                "title": "skipUntil",
+                "code": "timer(0, 100)\n  .pipe(\n    take(20),\n    // timer(1000)이 1초뒤 이벤트를 발생시키기 전까지 이벤트는 모두 skip된다. \n    skipUntil(timer(1000))\n  )\n  .subscribe(console('skipUntil timer(1s)'));\n",
+                "id": "6.21",
+                "note": "skipUntil"
+            },
+            {
+                "title": "takeUntil",
+                "code": "timer(0, 100)\n  .pipe(\n    take(20),\n    // timer(1000)이 1초뒤 이벤트를 발생시키기 이전 이벤트만 통과된다.\n    takeUntil(timer(1000))\n  )\n  .subscribe(console('takeUntil timer(1s)'));\n",
+                "id": "6.22",
+                "note": "takeUntil"
+            },
+            {
+                "title": "ignoreElements",
+                "code": "of(1, 2, 3, 4)\n  .pipe(\n    tap(console('source1')),\n    ignoreElements()\n  )\n  .subscribe(console('ignoreElements1'));\n\nthrowError(() => -999)\n  .pipe(\n    tap(console('source2')),\n    ignoreElements()\n  )\n  .subscribe(console('ignoreElements2'));\n",
+                "id": "6.23",
+                "note": "ignoreElements"
+            },
+            {
+                "title": "distinctUntilChanged",
+                "code": "of(1, 1, 2, 2, 2)\n  .pipe(\n    // distinctUntilChanged()는 바뀌면 전달한다\n    distinctUntilChanged()\n  )\n  .subscribe(console('distinctUntilChanged 1'));\n\nof({ v: 1 }, { v: 1 }, { v: 2 }, { v: 2 }, { v: 2 },)\n  .pipe(\n    distinctUntilChanged()\n  )\n  .subscribe(console('distinctUntilChanged 2'));\n\n\nof({ v: 1 }, { v: 1 }, { v: 2 }, { v: 2 }, { v: 2 },)\n  .pipe(\n    distinctUntilChanged((a, b) => a.v === b.v)\n  )\n  .subscribe(console('distinctUntilChanged 3'));\n",
+                "id": "6.24",
+                "note": "distinctUntilChanged"
+            },
+            {
+                "title": "distinctUntilKeyChanged",
+                "code": "of({ v: undefined }, { v: null }, { v: 1 }, { v: 1 })\n  .pipe(\n    // distinctUntilKeyChanged()는 object의 key가 바뀌면 전달한다\n    distinctUntilKeyChanged('v')\n  )\n  .subscribe(console('distinctUntilKeyChanged 1'));\n\n\nof({ v: undefined }, { v: null }, { v: 1 }, { v: 1 })\n  .pipe(\n    distinctUntilKeyChanged('v', (a, b) => a == b)\n  )\n  .subscribe(console('distinctUntilKeyChanged 2'));\n\nof([], [], [1], [1], [1, 2])\n  .pipe(\n    distinctUntilKeyChanged('length')\n  )\n  .subscribe(console('distinctUntilKeyChanged 3'));\n",
+                "id": "6.25",
+                "note": "distinctUntilKeyChanged"
+            }
+        ],
+        "id": "6"
+    },
+    {
+        "title": "join operators",
+        "sections": [
+            {
+                "title": "combineLatestAll",
+                "code": "const highOrder = of(\n  timer(300, 500).pipe(take(4), timeline('timer1')),\n  timer(200, 700).pipe(take(3), timeline('timer2')),\n);\n\nhighOrder\n  .pipe(\n    combineLatestAll(),\n    timeline('combineLatestAll')\n  )\n  .subscribe(console('combineLatestAll'));\n",
+                "id": "7.1",
+                "note": "combineLatestAll"
+            },
+            {
+                "title": "concatAll",
+                "code": "const highOrder = of(\n  timer(300, 500).pipe(take(4), timeline('timer1')),\n  timer(200, 700).pipe(take(3), timeline('timer2')),\n  timer(500).pipe(map(p => { throw -999 }), timeline('error')),\n  of(100)\n);\n\nhighOrder\n  .pipe(\n    // 여러 observable을 순차적으로 읽어서 하나로 만든다\n    // 에러가 나면 중단된다\n    concatAll(),\n    timeline('concatAll')\n  )\n  .subscribe(console('concatAll'));\n",
+                "id": "7.2",
+                "note": "concatAll"
+            },
+            {
+                "title": "mergeAll",
+                "code": "const highOrder = of(\n  timer(300, 500).pipe(take(4), timeline('timer1')),\n  timer(200, 700).pipe(take(3), timeline('timer2')),\n  timer(500).pipe(map(p => { throw -999 }), timeline('error')),\n  of(100)\n);\n\n\nhighOrder\n  .pipe(\n    mergeAll(),\n    timeline('mergeAll')\n  )\n  .subscribe(console('mergeAll'));\n",
+                "id": "7.3",
+                "note": "mergeAll"
+            },
+            {
+                "title": "exhaustAll",
+                "code": "timer(0, 1000)\n  .pipe(\n    // 5초간 테스트한다\n    take(5),\n    timeline('timer'),\n\n    // 각 event를 observable로 변환한다\n    // 변환된 observable은 300ms간격으로 5번의 event를 발생한다\n    map(o => timer(0, 300).pipe(take(5), timeline(`timer-${o}`))),\n\n    // exhaustAll은 기존 observable이 끝나기 전에 들어오는 observable은 모두 skip한다\n    exhaustAll(),\n    timeline('exhaustAll')\n  )\n  .subscribe(console('exhaustAll'));\n",
+                "id": "7.4",
+                "note": "exhaustAll"
+            },
+            {
+                "title": "switchAll",
+                "code": "timer(0, 1000)\n  .pipe(\n    // 5초간 테스트한다\n    take(5),\n    timeline('timer'),\n\n    // 각 event를 observable로 변환한다\n    // 변환된 observable은 300ms간격으로 5번의 event를 발생한다\n    map(o => timer(0, 300).pipe(take(5), timeline(`timer-${o}`))),\n\n    // switchAll은 exhaustAll과 반대로, 새 observable이 나타나면 바로 switch한다\n    switchAll(),\n    timeline('switchAll')\n  )\n  .subscribe(console('switchAll'));\n",
+                "id": "7.5",
+                "note": "switchAll"
+            },
+            {
+                "title": "startWith",
+                "code": "of(4, 5, 6)\n  .pipe(\n    // startWith은 앞에 붙인다\n    startWith(1, 2, 3)\n  )\n  .subscribe(console('startWith'));\n",
+                "id": "7.6",
+                "note": "startWith"
+            },
+            {
+                "title": "withLatestFrom",
+                "code": "const concurrentUsres = timer(200, 1000)\n  .pipe(\n    take(5),\n    map((_, i) => [100, 150, 140, 130, 120][i]),\n    timeline('user#')\n  );\n\nconst faluts = timer(0, 600)\n  .pipe(\n    take(10),\n    map((_, i) => `${i}th fault`),\n    timeline('fault'),\n\n    // withLatestFrom은 다른 observable의 최신값을 같이 전달한다\n    // 만약 같이 전달할 observable의 값이 없다면, 해당 이벤트는 skip된다.\n    withLatestFrom(concurrentUsres),\n    timeline('withLatestFrom')\n  )\n  .subscribe(console('withLatestFrom'));\n",
+                "id": "7.7",
+                "note": "withLatestFrom"
+            }
+        ],
+        "id": "7"
+    },
+    {
+        "title": "utility operators",
+        "sections": [
+            {
+                "title": "tap 01",
+                "code": "of(1, 2, 3, 4)\n  .pipe(\n    // tap는 observable을 변경하지 않고, 중간에 값을 관측할 수 있다\n    tap(v => console.log('tap:  ', v))\n  )\n  .subscribe(console('final'));\n",
+                "id": "8.1",
+                "note": "tap 01"
+            },
+            {
+                "title": "tap 02",
+                "code": "of(1, 2, 3, 4)\n  .pipe(\n    // error, complete도 관측할 수 있다\n    tap({\n      next: v => console.log('tap:   next', v),\n      error: e => console.log('tap:   error', e),\n      complete: () => console.log('tap:   completed'),\n    })\n  )\n  .subscribe(console('final'));\n",
+                "id": "8.2",
+                "note": "tap 02"
+            },
+            {
+                "title": "delay",
+                "code": "timer(0, 500)\n  .pipe(\n    take(5),\n    timeline('timer'),\n\n    // delay는 입력 이벤트를 주어진 시간동안 지연시켜서 보낸다\n    delay(100),\n    timeline('after delay'),\n  )\n  .subscribe();\n",
+                "id": "8.3",
+                "note": "delay"
+            },
+            {
+                "title": "delayWhen",
+                "code": "timer(0, 500)\n  .pipe(\n    take(5),\n    timeline('timer'),\n\n    // delayWhen은 delay 시간을 callback 함수를 호출한 결과 observable로 조절한다\n    // 아래는 짝수이벤트는 딜레이없이, 홀수 이벤트는 100ms 지연시켜 전달한다.\n    delayWhen(ev => timer(ev % 2 == 0 ? 0 : 100)),\n    timeline('after delay'),\n  )\n  .subscribe();\n",
+                "id": "8.4",
+                "note": "delayWhen"
+            },
+            {
+                "title": "materialize",
+                "code": "of(1, 2, 3, 4)\n  .pipe(\n    // next, error, complete를 ObservableNotification 형식으로 바꾼다\n    // { kind: 'N' | 'E' | 'C', value?: any, ... }\n    materialize()\n  )\n  .subscribe(console('materialize'));\n",
+                "id": "8.5",
+                "note": "materialize"
+            },
+            {
+                "title": "dematerialize",
+                "code": "of(1, 2, 3, 4)\n  .pipe(\n    materialize(),\n    // materialized 형태를 원래대로 되돌린다\n    dematerialize(),\n  )\n  .subscribe(console('dematerialize'));\n",
+                "id": "8.6",
+                "note": "dematerialize"
+            },
+            {
+                "title": "observeOn",
+                "code": "",
+                "id": "8.7",
+                "note": "observeOn"
+            },
+            {
+                "title": "subscribeOn",
+                "code": "",
+                "id": "8.8",
+                "note": "subscribeOn"
+            },
+            {
+                "title": "timeInterval",
+                "code": "of(500, 1000, 2000)\n  .pipe(\n    delayWhen(e => timer(e)),\n    // 이전 이벤트와의 시간 간격을 계산하여, { value, interval } 형식으로 전달한다\n    timeInterval(),\n  )\n  .subscribe(console('timeInterval'));\n",
+                "id": "8.9",
+                "note": "timeInterval"
+            },
+            {
+                "title": "timestamp",
+                "code": "of(500, 1000, 2000)\n  .pipe(\n    delayWhen(e => timer(e)),\n    // timestamp(Date.now)를 넣어서, { value, timestamp } 형식으로 전달한다\n    timestamp(),\n  )\n  .subscribe(console('timestamp'));\n",
+                "id": "8.10",
+                "note": "timestamp"
+            },
+            {
+                "title": "timeout 01",
+                "code": "of(500, 1000, 2000, 2500)\n  .pipe(\n    map(v => timer(v)),\n    mergeAll()\n  )\n  .pipe(\n    // timeout 시간이 경과하면, TimeoutError를 발생한다\n    timeout({ each: 800 })  // timeout(800)과 동일\n  )\n  .subscribe(console('timeout'));\n",
+                "id": "8.11",
+                "note": "timeout 01"
+            },
+            {
+                "title": "timeout 02",
+                "code": "of(500, 1000, 2000, 2500)\n  .pipe(\n    map(v => timer(v)),\n    mergeAll()\n  )\n  .pipe(\n    // with 옵션으로 에러 종류를 변경한다\n    timeout({\n      each: 800,\n      with: () => throwError(-999)\n    })\n  )\n  .subscribe(console('timeout'));\n",
+                "id": "8.12",
+                "note": "timeout 02"
+            },
+            {
+                "title": "timeout 03",
+                "code": "of(500, 1000, 2000, 2500)\n  .pipe(\n    map(v => timer(v)),\n    mergeAll()\n  )\n  .pipe(\n    // first 옵션을 사용하면 최초에만 timeout이 적용된다\n    timeout({\n      first: 800,\n    })\n  )\n  .subscribe(console('timeout'));\n",
+                "id": "8.13",
+                "note": "timeout 03"
+            },
+            {
+                "title": "timeoutWith 01",
+                "code": "const slowQuery$ = of(500, 1000, 2000, 2500)\n  .pipe(\n    map(v => timer(v)),\n    mergeAll(),\n    map(v => `slow query #${v}`)\n  );\n\nconst fastQuery$ = interval(100)\n  .pipe(\n    map(v => `fast query #${v}`)\n  );\n\nslowQuery$\n  .pipe(\n    // timeout({ each, with })과 동일하다\n    // slowQuery가 timeout이 걸리면, 뒤는 fastQuery로 전환한다.\n    timeoutWith(800, fastQuery$),\n    take(10)\n  )\n  .subscribe(console('timeoutWith'));\n",
+                "id": "8.14",
+                "note": "timeoutWith 01"
+            },
+            {
+                "title": "toArray",
+                "code": "interval(100)\n  .pipe(\n    take(10),\n    // 결과를 array로 변환하여 한번에 넘겨준다\n    toArray()\n  )\n  .subscribe(console('toArray'));\n",
+                "id": "8.15",
+                "note": "toArray"
+            }
+        ],
+        "id": "8"
+    },
+    {
+        "title": "conditional and boolean operators",
+        "sections": [
+            {
+                "title": "defaultIfEmpty",
+                "code": "of(1, 2, 3)\n  .pipe(\n    defaultIfEmpty(null)\n  )\n  .subscribe(console('defaultIfEmpty - not empty'));\n\nof()\n  .pipe(\n    defaultIfEmpty(null)\n  )\n  .subscribe(console('defaultIfEmpty - empty'));\n",
+                "id": "9.1",
+                "note": "defaultIfEmpty"
+            },
+            {
+                "title": "every",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    every(v => v < 10)\n  )\n  .subscribe(console('every < 10'));\n\nof(1, 2, 3, 4, 5)\n  .pipe(\n    every(v => v < 3)\n  )\n  .subscribe(console('every < 3'));\n",
+                "id": "9.2",
+                "note": "every"
+            },
+            {
+                "title": "find",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    find(v => v > 3)\n  )\n  .subscribe(console('find > 3'));\n",
+                "id": "9.3",
+                "note": "find"
+            },
+            {
+                "title": "findIndex",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    findIndex(v => v > 3)\n  )\n  .subscribe(console('find > 3'));\n",
+                "id": "9.4",
+                "note": "findIndex"
+            },
+            {
+                "title": "isEmpty",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    isEmpty()\n  )\n  .subscribe(console('isEmpty - not empty'));\n\nof()\n  .pipe(\n    isEmpty()\n  )\n  .subscribe(console('isEmpty - empty'));\n\n\nthrowError(() => -999)\n  .pipe(\n    isEmpty()\n  )\n  .subscribe(console('isEmpty - error'));\n",
+                "id": "9.5",
+                "note": "isEmpty"
+            }
+        ],
+        "id": "9"
+    },
+    {
+        "title": "mathematical and aggregate operators",
+        "sections": [
+            {
+                "title": "count",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    count()\n  )\n  .subscribe(console('count'));\n",
+                "id": "10.1",
+                "note": "count"
+            },
+            {
+                "title": "min",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    min()\n  )\n  .subscribe(console('min'));\n",
+                "id": "10.2",
+                "note": "min"
+            },
+            {
+                "title": "max",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    max()\n  )\n  .subscribe(console('max'));\n",
+                "id": "10.3",
+                "note": "max"
+            },
+            {
+                "title": "reduce",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    // array의 reduce와 의미가 동일하다.\n    reduce((acc, v) => acc + v, 0)\n  )\n  .subscribe(console('reduce'));\n\nof(1, 2, 3, 4, 5)\n  .pipe(\n    // 중간값을 계속 보고 싶으면 scan을 사용한다.\n    scan((acc, v) => acc + v, 0)\n  )\n  .subscribe(console('scan'));\n",
+                "id": "10.4",
+                "note": "reduce"
+            }
+        ],
+        "id": "10"
+    },
+    {
+        "title": "error handling operators",
+        "sections": [
+            {
+                "title": "catchError",
+                "code": "const query = concat(of(1, 2, 3, 4), throwError(() => -999));\nconst alternative = of('I', 'II', 'III', 'IV', 'V');\n\nquery\n  .pipe(\n    // 에러가 발생하면 observable을 전환한다.\n    catchError(() => alternative)\n  )\n  .subscribe(console('catchError'));\n",
+                "id": "11.1",
+                "note": "catchError"
+            },
+            {
+                "title": "retry",
+                "code": "const query = concat(of(1, 2, 3, 4), throwError(() => -999));\n\nquery\n  .pipe(\n    // 에러가 발생하면 추가로 2회 더 반복한다\n    retry(2)\n  )\n  .subscribe(console('retry'));\n",
+                "id": "11.2",
+                "note": "retry"
+            },
+            {
+                "title": "retryWhen",
+                "code": "// 3번째 error를 발생하는 observable\nconst query = interval(500)\n  .pipe(\n    map(v => {\n      if (v == 2) throw -999;\n      return v;\n    }),\n    timeline(`query`)\n  );\n\nreturn query\n  .pipe(\n    // 에러가 발생하면 observable (query)를 재실행한다\n    retryWhen((errors, n) =>\n      // errors는 에러만 따로 모인 observable이며, next로 전달된다\n      // 이 observable을 변환해서 전달하면 해당 시점에 retry가 진행된다\n      errors.pipe(\n        tap(console(`errors`)),\n        timeline('errors'),\n\n        // errors observable을 1초 딜레이를 주어 retry를 한다\n        delay(1000),\n        timeline('delay')\n      ),\n    ),\n    timeline('output'),\n    take(10)\n  )\n  .subscribe(console('retryWhen'));\n",
+                "id": "11.3",
+                "note": "retryWhen"
+            }
+        ],
+        "id": "11"
+    },
+    {
+        "title": "transform operators",
+        "sections": [
+            {
+                "title": "map",
+                "code": "of(1, 2, 3, 4)\n  .pipe(\n    map(v => v * 2)\n  )\n  .subscribe(console('map'));\n",
+                "id": "12.1",
+                "note": "map"
+            },
+            {
+                "title": "mapTo",
+                "code": "of(1, 2, 3, 4)\n  .pipe(\n    // 상수값으로 mapping한다.\n    mapTo('updated')\n    /* 아래 코드와 동일하다\n    map(() => 'updated')\n    */\n  )\n  .subscribe(console('mapTo'));\n",
+                "id": "12.2",
+                "note": "mapTo"
+            },
+            {
+                "title": "pairwise",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    // pairwise는 이전 이벤트와 현재 이벤트를 쌍으로 전달한다.\n    pairwise()\n  )\n  .subscribe(console('pairwise'));\n",
+                "id": "12.3",
+                "note": "pairwise"
+            },
+            {
+                "title": "partition",
+                "code": "// deprecated 되었다.\n// join creation operator의 partition을 쓰라\n// 쓰려면 'rxjs/operators'에서 가져와야한다.\n",
+                "id": "12.4",
+                "note": "partition"
+            },
+            {
+                "title": "pluck",
+                "code": "// deprecated 되었다.\n//\n// fluck('foo', 'bar')는 map(x => x?.foo?.bar)와 같다\n\nof({ foo: { bar: 100 } }, {})\n  .pipe(\n    pluck('foo', 'bar')\n  )\n  .subscribe(console('pluck'));\n\n\nof({ foo: { bar: 100 } }, {})\n  .pipe(\n    map(x => x?.foo?.bar)\n  )\n  .subscribe(console('map'));\n",
+                "id": "12.5",
+                "note": "pluck"
+            },
+            {
+                "title": "scan",
+                "code": "of(1, 2, 3, 4, 5)\n  .pipe(\n    // scan은 reduce와 비슷하나 중간값을 계속 전달한다.\n    scan((acc, v) => acc + v, 0)\n  )\n  .subscribe(console('scan'));\n\nof(1, 2, 3, 4, 5)\n  .pipe(\n    // reduce는 마지막 값을 전달한다.\n    reduce((acc, v) => acc + v, 0)\n  )\n  .subscribe(console('reduce'));\n",
+                "id": "12.6",
+                "note": "scan"
+            },
+            {
+                "title": "concatMap",
+                "code": "const range = count =>\n  interval(500)\n    .pipe(\n      take(count),\n      map(v => `${v+1}/${count}`)\n    );\n\n// concatMap(cb)는 concat(map(cb))로 이해하면 된다\n// 1. 먼저 map을 하며 high order로 만든뒤,\n// 2. 앞의 observable이 끝나면 넘어가는 방식으로 순서대로 합친다\nof(1, 2, 3)\n  .pipe(\n    concatMap(count => range(count)),\n    /* 아래 코드는 동일하다\n    map(count => range(count)),\n    concatAll()\n    */\n  )\n  .subscribe(console('concatMap'));\n",
+                "id": "12.7",
+                "note": "concatMap"
+            },
+            {
+                "title": "concatMapTo",
+                "code": "const range = count =>\n  interval(500)\n    .pipe(\n      take(count),\n      map(v => `${v+1}/${count}`)\n    );\n\n// concatMapTo는 map의 constant 버전이다.\nof(1, 2, 3)\n  .pipe(\n    concatMapTo(range(3)),\n    /* 아래 코드는 동일하다\n    mapTo(range(3)),\n    concatAll(),\n    */\n  )\n  .subscribe(console('concatMap'));\n",
+                "id": "12.8",
+                "note": "concatMapTo"
+            },
+            {
+                "title": "mergeMap",
+                "code": "const range = count =>\n  interval(500)\n    .pipe(\n      take(count),\n      map(v => `${v+1}/${count}`)\n    );\n\n// mergeMap(cb)는 merge(map(cb))로 이해하면 된다\n// 1. 먼저 map을 하며 high order로 만든뒤,\n// 2. 모든 observable을 동시에 합친다\nof(1, 2, 3)\n  .pipe(\n    mergeMap(count => range(count)),\n    /* 아래 코드는 동일하다\n    map(count => range(count)),\n    mergeAll()\n    */\n  )\n  .subscribe(console('mergeMap'));\n",
+                "id": "12.9",
+                "note": "mergeMap"
+            },
+            {
+                "title": "mergeMapTo",
+                "code": "const range = count =>\n  interval(500)\n    .pipe(\n      take(count),\n      map(v => `${v+1}/${count}`)\n    );\n\n// mergeMapTo는 map의 constant 버전이다.\nof(1, 2, 3)\n  .pipe(\n    mergeMapTo(range(3)),\n    /* 아래 코드는 동일하다\n    mapTo(range(3)),\n    mergeAll(),\n    */\n  )\n  .subscribe(console('mergeMap'));\n",
+                "id": "12.10",
+                "note": "mergeMapTo"
+            },
+            {
+                "title": "exhaustMap",
+                "code": "const range = count =>\n  interval(500)\n    .pipe(\n      take(count),\n      map(v => `${v + 1}/${count}`)\n    );\n\n// exhaustMap(cb)는 exhaust(map(cb))로 이해하면 된다. (exhaustAll 참조)\n// 1. 먼저 map을 하며 high order로 만든뒤,\n// 2. 앞의 observable이 끝나야 넘어가지만, 끝난뒤에 발생한 observable로 건너뛴다.\ninterval(500)\n  .pipe(\n    map(v => v + 1),\n    take(3),\n  )\n  .pipe(\n    exhaustMap(count => range(count)),\n    /* 아래 코드는 동일하다\n    map(count => range(count)),\n    exhaustAll()\n    */\n  )\n  // 1/2, 2/2 를 건너뛴다\n  .subscribe(console('exhaustMap'));",
+                "id": "12.11",
+                "note": "exhaustMap"
+            },
+            {
+                "title": "switchMap",
+                "code": "const range = count =>\n  interval(200)\n    .pipe(\n      take(count),\n      map(v => `${v+1}/${count}`)\n    );\n\n// switchMap()은 입력값을 observable로 map하는 것은 동일하나, 최신 observable만을 합친다.\n// 1. 먼저 map을 하며 high order로 만든뒤,\n// 2. 새로나온 observable로 switch한다.\ninterval(500).pipe(take(5))\n  .pipe(\n    switchMap(count => {\n      console.log('switching ---------');\n      return range(count + 1);\n    }),\n  )\n  .subscribe(console('switchMap'));\n",
+                "id": "12.12",
+                "note": "switchMap"
+            },
+            {
+                "title": "switchMapTo",
+                "code": "const start$ = fromEvent(document, 'click')\n  .pipe(\n    mapTo('restart'),\n    startWith('start'),\n    tap(console('input'))\n  );\n\n// 이 예제는 5초 타이머를 구현하였고, 중간에 아무곳이나 클릭하면 처음부터 다시 시작된다.\nconst sub = start$\n  .pipe(\n    // switchMapTo()는 정해진 constant observable로 전환한다.\n    switchMapTo(timer(0, 1000)),\n\n    // 입력값이 5를 넘어가면 끝난다.\n    takeWhile(p => p <= 5),\n    map(p => `elapsed ${p} seconds`),\n  )\n  .subscribe(console('switchMapTo'));\n",
+                "id": "12.13",
+                "note": "switchMapTo"
+            },
+            {
+                "title": "switchScan",
+                "code": "timer(0, 1000)\n  .pipe(\n    take(3),\n    map(i => ['A', 'B', 'C'][i]),\n    tap(console('input'))\n  )\n  .pipe(\n    // switchScan은 입력값을 accumulator를 통해 합산을 넘겨주는 observable을 리턴하고,\n    // 가장 최신 observable을 바깥쪽 observable에 전달한다.\n    switchScan(\n      (acc, p) => timer(0, 600).pipe(\n        take(3),\n        scan((acc2, q) => [...acc2, `${p}-${q}`], acc),\n      ),\n      []\n    ),\n    take(10)\n  )\n  .subscribe(console('switchScan'));\n",
+                "id": "12.14",
+                "note": "switchScan"
+            },
+            {
+                "title": "buffer",
+                "code": "interval(100)\n  .pipe(\n    // 100ms 마다 발생되는 event를 1초 단위로 buffering해서 전달한다.\n    buffer(interval(1000)),\n    take(5)\n  )\n  .subscribe(console('buffer'));\n",
+                "id": "12.15",
+                "note": "buffer"
+            },
+            {
+                "title": "bufferTime",
+                "code": "interval(100)\n  .pipe(\n    // 100ms 마다 발생되는 event를 1초 단위로 buffering해서 전달한다.\n    bufferTime(1000),\n    take(5)\n  )\n  .subscribe(console('bufferTime'));\n",
+                "id": "12.16",
+                "note": "bufferTime"
+            },
+            {
+                "title": "bufferCount",
+                "code": "of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)\n  .pipe(\n    // 3개씩 buffering한다\n    bufferCount(3),\n  )\n  .subscribe(console('buffer'));\n",
+                "id": "12.17",
+                "note": "bufferCount"
+            },
+            {
+                "title": "bufferToggle",
+                "code": "const clicks = fromEvent(document, 'click')\n  .pipe(\n    mapTo('C'),\n    timeline('clicks')\n  );\n\nconst openings = interval(1000)\n  .pipe(\n    mapTo('['),\n    timeline('openings')\n  );\n\nclicks\n  .pipe(\n    // bufferToggle은 observable을 사용하여, buffering 시작, 끝을 제어한다.\n    // 실행후 화면을 아무곳이나 클릭하면, 매초단위로 500ms동안 버퍼링을 한다. 나머지는 버려진다.\n    bufferToggle(\n      openings,             // buffering이 시작하는 시점\n      () => interval(500)   // buffering이 끝나는 시점\n        .pipe(mapTo(']'),\n          timeline('closings')\n        ),\n    ),\n    timeline('buffered')\n  )\n  .subscribe(x => console.log(x));\n",
+                "id": "12.18",
+                "note": "bufferToggle"
+            },
+            {
+                "title": "bufferWhen",
+                "code": "const clicks = fromEvent(document, 'click')\n  .pipe(\n    mapTo('C'),\n    timeline('clicks')\n  );\n\nclicks\n  .pipe(\n    // bufferToggle과 다르게 buffer는 닫히자마자 바로 다시 열리며,\n    // closingSelector를 사용해서 닫히는 시점을 제어한다\n    bufferWhen(\n      () => interval(500)   // buffering이 끝나는 시점\n        .pipe(mapTo('|'),\n        timeline('closings')\n      ),\n    ),\n    timeline('buffered')\n  )\n  .subscribe(x => console.log(x));\n",
+                "id": "12.19",
+                "note": "bufferWhen"
+            },
+            {
+                "title": "window 01",
+                "code": "const tick$ = interval(1000)\n  .pipe(timeline('tick'));\n\ntimer(0, 300).pipe(take(10))\n  .pipe(\n    timeline('input'),\n\n    // window는 boundary observable을 사용하여 window 경계를 제어한다.\n    // boundary observable에 emit될때마다, window가 전환되어 새로운 observable을 넘겨준다.\n    window(tick$),\n    timeline('output')\n  )\n  // 결과는 high order observable들이다.\n  .subscribe(v => console.log(v.constructor.name));\n",
+                "id": "12.20",
+                "note": "window 01"
+            },
+            {
+                "title": "window 02",
+                "code": "const tick$ = interval(1000);\n\ntimer(0, 300).pipe(take(10))\n  .pipe(\n    window(tick$),\n    // 각 window별 observable들을 scan하여 window를 모은다.\n    // 각 window별 observable이 완전히 순차적으로 발생되기 때문에,\n    // concatMap, mergeMap, switchMap 모두 동일한 결과이다.\n    switchMap(\n      o => o.pipe(\n        scan((acc, v) => [...acc, v], []),\n      ),\n    ),\n  )\n  // 결과는 high order observable들이다.\n  .subscribe(console('observer'));\n",
+                "id": "12.21",
+                "note": "window 02"
+            },
+            {
+                "title": "windowCount",
+                "code": "// windowCount<T>(\n//   windowSize: number,\n//   startWindowEvery: number = 0\n// ): OperatorFunction<T, Observable<T>>\n\ntimer(0, 300).pipe(take(10))\n  .pipe(\n    // window와 유사하나 window의 경계가 개수로 정해진다. (참조, bufferCount)\n    windowCount(3),\n    switchMap(\n      o => o.pipe(\n        scan((acc, v) => [...acc, v], []),\n      ),\n    ),\n  )\n  // 결과는 high order observable들이다.\n  .subscribe(console('observer'));\n",
+                "id": "12.22",
+                "note": "windowCount"
+            },
+            {
+                "title": "windowTime",
+                "code": "timer(0, 300).pipe(take(10))\n  .pipe(\n    // window와 유사하나 window의 경계가 고정된 시간으로 결정된다\n    // (참조 bufferTime)\n    windowTime(1000),\n    switchMap(\n      o => o.pipe(\n        scan((acc, v) => [...acc, v], []),\n      ),\n    ),\n  )\n  // 결과는 high order observable들이다.\n  .subscribe(console('observer'));\n",
+                "id": "12.23",
+                "note": "windowTime"
+            },
+            {
+                "title": "windowTime 02",
+                "code": "timer(0, 300).pipe(take(10))\n  .pipe(\n    // optional인자를 설정하면, window에 포함하지 않는 기간을 지정할 수 있다.\n    // 아래는 매 2초중 1초만 window에 포함된다.\n    windowTime(1000, 2000),\n    switchMap(\n      o => o.pipe(\n        scan((acc, v) => [...acc, v], []),\n      ),\n    ),\n  )\n  // 결과는 high order observable들이다.\n  .subscribe(console('observer'));\n",
+                "id": "12.24",
+                "note": "windowTime 02"
+            },
+            {
+                "title": "windowToggle",
+                "code": "timer(0, 300).pipe(take(10))\n  .pipe(\n    // windowToggle()은 observable을 사용하여 window의 시작과 끝을 지정한다.\n    // 아래 예제는, 매 2초마다 열리고, 1초뒤에 닫히는 window이다. 이전 windowTime 예제와 동일하다.\n    // (참조 bufferToggle)\n    windowToggle(\n      timer(0, 2000),   // openings\n      v => timer(1000)  // closing selector\n    ),\n    switchMap(\n      o => o.pipe(\n        scan((acc, v) => [...acc, v], []),\n      ),\n    ),\n  )\n  // 결과는 high order observable들이다.\n  .subscribe(console('observer'));\n",
+                "id": "12.25",
+                "note": "windowToggle"
+            },
+            {
+                "title": "windowWhen",
+                "code": "timer(0, 300).pipe(take(10))\n  .pipe(\n    // windowWhen()은 windowToggle()과 유사하나 closing selector로 닫히는 것만 제어한다.\n    // 즉, window는 닫히자 마자 다음 window가 바로 열린다.\n    // 아래 예제는, 매 1초마다 열리고 닫히는 window이다. (참조, bufferWhen)\n    windowWhen(\n      v => timer(1000)  // closing selector\n    ),\n    switchMap(\n      o => o.pipe(\n        scan((acc, v) => [...acc, v], []),\n      ),\n    ),\n  )\n  // 결과는 high order observable들이다.\n  .subscribe(console('observer'));\n",
+                "id": "12.26",
+                "note": "windowWhen"
+            },
+            {
+                "title": "expand",
+                "code": "const fakeFS = {\n  'etc': { 'passwd': null },\n  'bin': { 'ls': null, 'ps': null },\n}\n\nconst dir = path => {\n  const stat = path === '/'\n    ? fakeFS\n    : path.split('/').slice(1).reduce((acc, v) => acc[v], fakeFS);\n\n  return stat != null\n    ? Object.keys(stat).map(f => `${path}/${f}`.replaceAll('//', '/'))\n    : [];\n}\n\nconst dir$ = path =>\n  from(dir(path)).pipe(\n    concatMap(v => of(v).pipe(delay(500)))\n  );\n\nof('/')\n  .pipe(\n    // expand는 recursive한 mergeMap 이다.\n    // 입력뿐만 아니라 출력도 다시 expand한다. 그래프 탐색같은 경우에 유용한듯\n    expand(path => dir$(path)),\n  )\n  .subscribe(console('expand'));\n",
+                "id": "12.27",
+                "note": "expand"
+            },
+            {
+                "title": "groupBy 01",
+                "code": "of(\n  { id: 1, name: 'JavaScript' },\n  { id: 2, name: 'Parcel' },\n  { id: 2, name: 'webpack' },\n  { id: 1, name: 'TypeScript' },\n  { id: 3, name: 'TSLint' }\n)\n  .pipe(\n    // groupBy는 같은 값을 가진 필드들로 group하여 observable을 생성한다\n    groupBy(p => p.id),\n  )\n  .subscribe(p => console.log(p.constructor.name, p));\n",
+                "id": "12.28",
+                "note": "groupBy 01"
+            },
+            {
+                "title": "groupBy 02",
+                "code": "of(\n  { id: 1, name: 'JavaScript' },\n  { id: 2, name: 'Parcel' },\n  { id: 2, name: 'webpack' },\n  { id: 1, name: 'TypeScript' },\n  { id: 3, name: 'TSLint' }\n)\n  .pipe(\n    concatMap(p => of(p).pipe(delay(500))),\n    timeline('source')\n  )\n  .pipe(\n    groupBy(p => p.id),\n    \n    timeline('groupBy'),\n    // 각 group을 toArray()를 사용하여 끝까지 모아 array를 만들어,\n    // merge하면 observable이 마지막에 groupBy된 결과를 볼 수 있다.\n    mergeMap(group$ => group$.pipe(timeline('map'), toArray())),\n\n    timeline('output')\n  )\n  .subscribe(console('groupBy and mergMap'));\n",
+                "id": "12.29",
+                "note": "groupBy 02"
+            },
+            {
+                "title": "groupBy 03",
+                "code": "of(\n  { id: 1, name: 'JavaScript' },\n  { id: 2, name: 'Parcel' },\n  { id: 2, name: 'webpack' },\n  { id: 1, name: 'TypeScript' },\n  { id: 3, name: 'TSLint' }\n)\n  .pipe(\n    concatMap(p => of(p).pipe(delay(500))),\n    timeline('source')\n  )\n  .pipe(\n    groupBy(p => p.id),\n\n    timeline('groupBy'),\n\n    // mergeMap / scan을 활용하면 combine된 결과를 볼 수 있다.\n    mergeMap(group$ => group$.pipe(\n      timeline('map'),\n      scan((acc, v) => ({ id: acc.id, names: [...acc.names, v.name]}), { id: group$.key, names: [] }),\n    )),\n    timeline('merged'),\n\n    scan((acc, v) => ({ ...acc, [v.id]: v.names }), {}),\n\n    timeline('scanned')\n  )\n  .subscribe(console('groupBy and mergMap'));\n",
+                "id": "12.30",
+                "note": "groupBy 03"
+            },
+            {
+                "title": "mergeScan 01",
+                "code": "const range = (delay, count) => interval(delay).pipe(take(count));\n\nrange(1000, 2)\n  .pipe(\n    timeline('input'),\n    // mergeScan은 scan과 다르게 accumulator가 결과값을 observable을 반환한다.\n    // 리턴된 observable은 merge된다.\n    mergeScan(\n      (acc, input) => of(`${acc}${input}, `).pipe(\n        delay(500),\n        timeline(`accum-${input}`)\n      ),\n      ''\n    ),\n    timeline('output')\n  )\n  .subscribe(console('mergeScan'));\n",
+                "id": "12.31",
+                "note": "mergeScan 01"
+            },
+            {
+                "title": "mergeScan 02",
+                "code": "const range = (delay, count) => interval(delay).pipe(take(count));\n\nrange(1000, 2)\n  .pipe(\n    timeline('input'),\n    // 순서가 꼬여서, 다음 input이 들어온 뒤에 합산이 끝이 난다면,\n    // 합산을 덮어쓰게 될 수 있다.\n    mergeScan(\n      (acc, input) => of(`${acc}${input}, `).pipe(\n        delay(1500),\n        timeline(`accum-${input}`)\n      ),\n      ''\n    ),\n    timeline('output')\n  )\n  .subscribe(console('mergeScan'));\n\n/*\n이전 예제)\n1506 ms: mergeScan: next = 0, \n2506 ms: mergeScan: next = 0, 1, \n\n이번 예제)\n2506 ms: mergeScan: next = 0, \n3508 ms: mergeScan: next = 1,\n*/\n",
+                "id": "12.32",
+                "note": "mergeScan 02"
+            },
+            {
+                "title": "mergeScan 03",
+                "code": "const fetchUserSince$ = since =>\n  ajax\n    .getJSON(`https://api.github.com/users?since=${since}&per_page=2`)\n    .pipe(\n      map(v => v.map(p => p.login)),\n      tap(v => console.log('received', v))\n    );\n\n// mergeScan의 적적한 예는 infinite scroll과 같은 경우이다.\n// 입력값이 무엇인지 중요하지 않고, 계속해서 덧붙여 나간다.\n// mergeScan()에 concurrent값을 추가하면, 동시에 발생되는 경우를 제한할 수 있다.\nfromEvent(document, 'click')\n  .pipe(\n    mergeScan(\n      (acc, _) => fetchUserSince$(acc.length).pipe(map(v => [...acc, ...v])),\n      []\n    )\n  )\n  .subscribe(console('mergeScan'));\n",
+                "id": "12.33",
+                "note": "mergeScan 03"
+            }
+        ],
+        "id": "12"
+    },
+    {
+        "title": "multicasting operators",
+        "sections": [
+            {
+                "title": "multicast",
+                "code": "// deprecated 되었다. connectable, connect, share를 쓰자.\n",
+                "id": "13.1",
+                "note": "multicast"
+            },
+            {
+                "title": "publish",
+                "code": "// 역시 deprecated 되었다. connectable, connect, share를 쓰자.\n",
+                "id": "13.2",
+                "note": "publish"
+            },
+            {
+                "title": "connect 01",
+                "code": "const source$ = of(1, 2, 3, 4, 5)\n  .pipe(\n    tap(console('source$'))\n  );\n\nsource$.pipe(\n  // connect()를 사용하면, source observable을 multicasting하여 사용할 수 있다.\n\n  // 아래 예제는 source$ observable이 multicasting가능한 shared$ observable로\n  // 변환되어 3개의 pipe를 거치고, merge를 통해 하나로 다시 합쳐지는 과정이다.\n  connect((shared$) => merge(\n    shared$.pipe(map(n => `all ${n}`)),\n    shared$.pipe(filter(n => n % 2 === 0), map(n => `even ${n}`)),\n    shared$.pipe(filter(n => n % 2 === 1), map(n => `odd ${n}`)),\n  ))\n)\n  .subscribe(console('connect'));\n",
+                "id": "13.3",
+                "note": "connect 01"
+            },
+            {
+                "title": "connect 02",
+                "code": "const source$ = defer(() => {\n  console.log('source subscribed ---------------');\n  return of(1, 2, 3, 4, 5)\n});\n\nof(1)\n  .pipe(\n    mapTo(source$),\n    // connect를 사용하여 multicasting으로 바꾸지 않는다면,\n    // source$는 여러번 재시작되게 된다.\n    mergeMap((each$) => merge(\n      each$.pipe(map(n => `all ${n}`)),\n      each$.pipe(filter(n => n % 2 === 0), map(n => `even ${n}`)),\n      each$.pipe(filter(n => n % 2 === 1), map(n => `odd ${n}`)),\n    ))\n  )\n  .subscribe(console('without connect'));\n",
+                "id": "13.4",
+                "note": "connect 02"
+            },
+            {
+                "title": "connectable",
+                "code": "const source$ = defer(() => {\n  console.log('source interval created');\n  return timer(100, 1000).pipe(take(5));\n});\n\nconst tick$ = connectable(source$, {\n  connector: () => new Subject()\n});\n\n// tick$.connect()를 호출하기 전에는 연결되지 않는다.\ntick$.subscribe(console('ob1'));\ntick$.subscribe(console('ob2'));\n\nconsole.log('ob1, ob2 subscribed and waiting 2 seconds ...');\nsetTimeout(() => {\n  console.log('$tick.connect() -----------------------');\n  tick$.connect();\n\n  setTimeout(() => {\n    console.log('ob3 subscribed');\n    // 추가로 subscribe 가능하다\n    tick$.subscribe(console('ob3'));\n\n    setTimeout(() => {\n      // 이미 source$가 종료되었다. subscribe 하더라도 재시작되지 않는다.\n      tick$.subscribe(console('ob4'));\n      console.log('ob4 subscribed and waiting 2 seconds ...');\n\n      setTimeout(() => {\n        console.log('$tick.connect() -----------------------');\n        tick$.connect();\n      }, 2000);\n\n    }, 3000);\n  }, 2000);\n\n}, 2000);\n",
+                "id": "13.5",
+                "note": "connectable"
+            },
+            {
+                "title": "publishBehavior",
+                "code": "// 역시 deprecated 되었다. connectable, connect, share를 쓰자.\n",
+                "id": "13.6",
+                "note": "publishBehavior"
+            },
+            {
+                "title": "publishLast",
+                "code": "// 역시 deprecated 되었다. connectable, connect, share를 쓰자.\n",
+                "id": "13.7",
+                "note": "publishLast"
+            },
+            {
+                "title": "publishReplay",
+                "code": "// 역시 deprecated 되었다. connectable, connect, share를 쓰자.\n",
+                "id": "13.8",
+                "note": "publishReplay"
+            },
+            {
+                "title": "share 01",
+                "code": "const source$ = timer(0, 1000)\n  .pipe(\n    take(10),\n    tap(console('source$')),\n\n    // share()는 multicast 가능한 observable로 변환해준다.\n    // 여러번 subscribe하더라도 source$는 공유되어 한번만 수행된다.\n    share()\n  );\n\nsource$.subscribe(console('ob1'));\nsource$.subscribe(console('ob2'));\n",
+                "id": "13.9",
+                "note": "share 01"
+            },
+            {
+                "title": "share 02",
+                "code": "const source$ = timer(0, 1000)\n  .pipe(\n    take(10),\n    tap(console('source$')),\n\n    // 동시에 연결된 observer가 모두 사라지면 reset된다.\n    share()\n  );\n\nconst ob1 = source$.subscribe(console('ob1'));\nconst ob2 = source$.subscribe(console('ob2'));\n\nsetTimeout(() => {\n  ob1.unsubscribe();\n  ob2.unsubscribe();\n  console.log('----------------- ob1, ob2 unsubscribed');\n  console.log('----------------- source$ restarted !!!!!!!!!!!');\n\n  const ob3 = source$.subscribe(console('ob3'));\n  const ob4 = source$.subscribe(console('ob4'));\n}, 2000);\n\n",
+                "id": "13.10",
+                "note": "share 02"
+            },
+            {
+                "title": "share 03",
+                "code": "const source$ = timer(0, 1000)\n  .pipe(\n    take(10),\n    tap(console('source$')),\n\n    // 연결된 observer가 없어도 (refCount() == 0) reset되지 않는다.\n    share({\n      resetOnRefCountZero: false\n    })\n  );\n\nconst ob1 = source$.subscribe(console('ob1'));\nconst ob2 = source$.subscribe(console('ob2'));\n\nsetTimeout(() => {\n  ob1.unsubscribe();\n  ob2.unsubscribe();\n  console.log('----------------- ob1, ob2 unsubscribed');\n  console.log('----------------- source$ continues !!!!!!!!!!!');\n\n  setTimeout(() => {\n    console.log('----------------- ob3, ob4 subscribed');\n    const ob3 = source$.subscribe(console('ob3'));\n    const ob4 = source$.subscribe(console('ob4'));\n  }, 2000);\n\n}, 2000);\n\n",
+                "id": "13.11",
+                "note": "share 03"
+            },
+            {
+                "title": "share 04",
+                "code": "let tries = 0;\n\nconst shareOption = {\n  // connector: () => new Subject(),\n  connector: () => new ReplaySubject(2),\n  // connector: () => new BehaviorSubject(),\n  resetOnError: true,\n  // resetOnError: false,\n  // resetOnComplete: true,\n  resetOnComplete: false,\n  resetOnRefCountZero: false\n};\n\nconst source$ = timer(0, 1000)\n  .pipe(\n    take(3),\n    tap(v => {\n      if (v === 1) {\n        if (++tries === 1) {\n          throw -999;\n        }\n      }\n    }),\n    tap(console('source$')),\n\n    // 위에서 옵션을 바꾸어가며 테스트해보자\n    share(shareOption)\n  );\n\nasync function test() {\n  const ob1 = console('ob1');\n  const ob2 = console('ob2');\n  const ob3 = console('ob3');\n  const ob4 = console('ob4');\n\n  source$.subscribe(ob1);\n  await ob1;\n  console.log('--------------------- reset on error =', shareOption.resetOnError)\n\n  source$.subscribe(ob2);\n  await ob2;\n\n  console.log('--------------------- connector =', shareOption.connector().constructor.name)\n  console.log('--------------------- reset on complete =', shareOption.resetOnComplete)\n\n  source$.subscribe(ob3);\n  await ob3;\n\n}\n\ntest();\n",
+                "id": "13.12",
+                "note": "share 04"
+            }
+        ],
+        "id": "13"
+    },
+    {
+        "title": "etc",
+        "sections": [
+            {
+                "title": "EMPTY",
+                "code": "// 바로 종료된다 (complete가 호출된다)\nEMPTY.subscribe(console('EMPTY'));\n",
+                "id": "14.1",
+                "note": "EMPTY"
+            },
+            {
+                "title": "NEVER",
+                "code": "// 아무것도 발생하지 않아, 절대 끝나지 않는다.\nconst subscription = NEVER.subscribe(console('NEVER'));\n\nsetTimeout(() => {\n  subscription.unsubscribe();\n  console.log('force unsubscribed');\n}, 5_000);\n",
+                "id": "14.2",
+                "note": "NEVER"
+            },
+            {
+                "title": "identity",
+                "code": "console.log(`identity(1) = ${identity(1)}`);\nconsole.log(`identity(['A']) = ${identity(['A'])}`);\n\nof(of(1, 2), of(3, 4))\n  .pipe(\n    mergeMap(identity)\n  )\n  .subscribe(console('identity'));\n",
+                "id": "14.3",
+                "note": "identity"
+            },
+            {
+                "title": "noop",
+                "code": "noop();  // 아무것도 읽어나지 않는 빈 함수이다.\n\nfunction someFunction(cb) {\n  console.log('someFunction called');\n  (cb || noop)();\n}\n\nsomeFunction();\n",
+                "id": "14.4",
+                "note": "noop"
+            },
+            {
+                "title": "firstValueFrom",
+                "code": "const observable$ = interval(1000);\n\n// observable을 promise로 바꾼다. 가장 먼저 나오는 값을 resolve한다.\nfirstValueFrom(observable$)\n  .then(r => console.log('then =', r));\n\nfirstValueFrom(observable$.pipe(tap(() => { throw -999; })))\n  .catch(e => console.error('catch = ', e));\n",
+                "id": "14.5",
+                "note": "firstValueFrom"
+            },
+            {
+                "title": "lastValueFrom",
+                "code": "const observable$ = interval(1000).pipe(take(3));\n\n// observable을 promise로 바꾼다. 가장 마지막에 나오는 값을 resolve한다.\nlastValueFrom(observable$)\n  .then(r => console.log('then =', r));\n\nlastValueFrom(observable$.pipe(tap(() => { throw -999; })))\n  .catch(e => console.error('catch = ', e));\n\n// 주의) 꼭 필요하지 않으면 firstValueFrom을 쓸 것.\n//      만약 complete가 호출되지 않거나 누락했으면, promise가 종료디지 않는다.\n",
+                "id": "14.6",
+                "note": "lastValueFrom"
+            }
+        ],
+        "id": "14"
+    }
+]
+

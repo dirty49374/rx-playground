@@ -1,0 +1,370 @@
+- title: Observable
+  sections:
+  - title: basics 01
+    code: !readtext observable/basics-01.js
+  - title: basics 02
+    code: !readtext observable/basics-02.js
+  - title: basics 03
+    code: !readtext observable/basics-03.js
+  - title: basics 04
+    code: !readtext observable/basics-04.js
+  - title: basics 05
+    code: !readtext observable/basics-05.js
+  - title: basics 06
+    code: !readtext observable/basics-06.js
+  - title: basics 07
+    code: !readtext observable/basics-07.js
+  - title: basics 08
+    code: !readtext observable/basics-08.js
+  - title: basics 09
+    code: !readtext observable/basics-09.js
+  - title: basics 10
+    code: !readtext observable/basics-10.js
+
+- title: Subjects
+  sections:
+  - title: basics
+    code: !readtext subjects/basics-01.js
+  - title: Subject
+    code: !readtext subjects/Subject-01.js
+  - title: BehaviorSubject
+    code: !readtext subjects/BehaviorSubject-01.js
+  - title: ReplaySubject
+    code: !readtext subjects/ReplaySubject-01.js
+  - title: AsyncSubject
+    code: !readtext subjects/AsyncSubject-01.js
+
+- title: creation operators
+  sections:
+  - title: of
+    code: !readtext creation-operators/of-01.js
+  - title: interval
+    code: !readtext creation-operators/interval-01.js
+  - title: timer 01
+    code: !readtext creation-operators/timer-01.js
+  - title: timer 02
+    code: !readtext creation-operators/timer-02.js
+  - title: empty
+    code: !readtext creation-operators/empty-01.js
+  - title: range
+    code: !readtext creation-operators/range-01.js
+  - title: generate
+    code: !readtext creation-operators/generate-01.js
+  - title: defer 01
+    code: !readtext creation-operators/defer-01.js
+  - title: defer 02
+    code: !readtext creation-operators/defer-02.js
+  - title: defer 03
+    code: !readtext creation-operators/defer-03.js
+  - title: throwError
+    code: !readtext creation-operators/throwError-01.js
+  - title: iif
+    code: !readtext creation-operators/iif-01.js
+  - title: ajax
+    code: !readtext creation-operators/ajax-01.js
+  - title: bindCallback 01
+    code: !readtext creation-operators/bindCallback-01.js
+  - title: bindCallback 02
+    code: !readtext creation-operators/bindCallback-02.js
+  - title: bindNodeCallback
+    code: !readtext creation-operators/bindNodeCallback-01.js
+  - title: from
+    code: !readtext creation-operators/from-01.js
+  - title: fromEvent
+    code: !readtext creation-operators/fromEvent-01.js
+  - title: fromEventPattern
+    code: !readtext creation-operators/fromEventPattern-01.js
+
+- title: join creation operators
+  sections:
+  - title: combineLatest 01
+    code: !readtext join-creation-operators/combineLatest-01.js
+  - title: combineLatest 02
+    code: !readtext join-creation-operators/combineLatest-02.js
+  - title: concat
+    code: !readtext join-creation-operators/concat-01.js
+  - title: merge
+    code: !readtext join-creation-operators/merge-01.js
+  - title: race
+    code: !readtext join-creation-operators/race-01.js
+  - title: zip
+    code: !readtext join-creation-operators/zip-01.js
+  - title: partition
+    code: !readtext join-creation-operators/partition-01.js
+  - title: forkJoin 01
+    code: !readtext join-creation-operators/forkJoin-01.js
+  - title: forkJoin 02
+    code: !readtext join-creation-operators/forkJoin-02.js
+
+- title: pipable operator
+  sections:
+  - title: basic 01
+    code: !readtext pipable-operator/basic-01.js
+  - title: basic 02
+    code: !readtext pipable-operator/basic-02.js
+  - title: basic 03
+    code: !readtext pipable-operator/basic-03.js
+  - title: basic 04
+    code: !readtext pipable-operator/basic-04.js
+
+- title: filtering operators
+  sections:
+  - title: filter
+    code: !readtext filtering-operators/filter-01.js
+  - title: first
+    code: !readtext filtering-operators/first-01.js
+  - title: last
+    code: !readtext filtering-operators/last-01.js
+  - title: single
+    code: !readtext filtering-operators/single-01.js
+  - title: skip
+    code: !readtext filtering-operators/skip-01.js
+  - title: take 01
+    code: !readtext filtering-operators/take-01.js
+  - title: take 02
+    code: !readtext filtering-operators/take-02.js
+  - title: skipLast
+    code: !readtext filtering-operators/skipLast-01.js
+  - title: takeLast
+    code: !readtext filtering-operators/takeLast-01.js
+  - title: skipWhile
+    code: !readtext filtering-operators/skipWhile-01.js
+  - title: takeWhile
+    code: !readtext filtering-operators/takeWhile-01.js
+  - title: distinct
+    code: !readtext filtering-operators/distinct-01.js
+  - title: elementAt
+    code: !readtext filtering-operators/elementAt-01.js
+  - title: auditTime
+    code: !readtext filtering-operators/auditTime-01.js
+  - title: throttleTime
+    code: !readtext filtering-operators/throttleTime-01.js
+  - title: sampleTime
+    code: !readtext filtering-operators/sampleTime-01.js
+  - title: debounceTime
+    code: !readtext filtering-operators/debounceTime-01.js
+  - title: audit
+    code: !readtext filtering-operators/audit-01.js
+  - title: throttle
+    code: !readtext filtering-operators/throttle-01.js
+  - title: debounce
+    code: !readtext filtering-operators/debounce-01.js
+  - title: skipUntil
+    code: !readtext filtering-operators/skipUntil-01.js
+  - title: takeUntil
+    code: !readtext filtering-operators/takeUntil-01.js
+  - title: ignoreElements
+    code: !readtext filtering-operators/ignoreElements-01.js
+  - title: distinctUntilChanged
+    code: !readtext filtering-operators/distinctUntilChanged-01.js
+  - title: distinctUntilKeyChanged
+    code: !readtext filtering-operators/distinctUntilKeyChanged-01.js
+
+- title: join operators
+  sections:
+  - title: combineLatestAll
+    code: !readtext join-operators/combineLatestAll-01.js
+  - title: concatAll
+    code: !readtext join-operators/concatAll-01.js
+  - title: mergeAll
+    code: !readtext join-operators/mergeAll-01.js
+  - title: exhaustAll
+    code: !readtext join-operators/exhaustAll-01.js
+  - title: switchAll
+    code: !readtext join-operators/switchAll-01.js
+  - title: startWith
+    code: !readtext join-operators/startWith-01.js
+  - title: withLatestFrom
+    code: !readtext join-operators/withLatestFrom-01.js
+
+- title: utility operators
+  sections:
+  - title: tap 01
+    code: !readtext utility-operators/tap-01.js
+  - title: tap 02
+    code: !readtext utility-operators/tap-02.js
+  - title: delay
+    code: !readtext utility-operators/delay-01.js
+  - title: delayWhen
+    code: !readtext utility-operators/delayWhen-01.js
+  - title: materialize
+    code: !readtext utility-operators/materialize-01.js
+  - title: dematerialize
+    code: !readtext utility-operators/dematerialize-01.js
+  - title: observeOn
+    code: !readtext utility-operators/observeOn-01.js
+  - title: subscribeOn
+    code: !readtext utility-operators/subscribeOn-01.js
+  - title: timeInterval
+    code: !readtext utility-operators/timeInterval-01.js
+  - title: timestamp
+    code: !readtext utility-operators/timestamp-01.js
+  - title: timeout 01
+    code: !readtext utility-operators/timeout-01.js
+  - title: timeout 02
+    code: !readtext utility-operators/timeout-02.js
+  - title: timeout 03
+    code: !readtext utility-operators/timeout-03.js
+  - title: timeoutWith 01
+    code: !readtext utility-operators/timeoutWith-01.js
+  - title: toArray
+    code: !readtext utility-operators/toArray-01.js
+
+- title: conditional and boolean operators
+  sections:
+  - title: defaultIfEmpty
+    code: !readtext conditional-and-boolean-operators/defaultIfEmpty-01.js
+  - title: every
+    code: !readtext conditional-and-boolean-operators/every-01.js
+  - title: find
+    code: !readtext conditional-and-boolean-operators/find-01.js
+  - title: findIndex
+    code: !readtext conditional-and-boolean-operators/findIndex-01.js
+  - title: isEmpty
+    code: !readtext conditional-and-boolean-operators/isEmpty-01.js
+
+- title: mathematical and aggregate operators
+  sections:
+  - title: count
+    code: !readtext mathematical-and-aggregate-operators/count-01.js
+  - title: min
+    code: !readtext mathematical-and-aggregate-operators/min-01.js
+  - title: max
+    code: !readtext mathematical-and-aggregate-operators/max-01.js
+  - title: reduce
+    code: !readtext mathematical-and-aggregate-operators/reduce-01.js
+
+
+- title: error handling operators
+  sections:
+  - title: catchError
+    code: !readtext error-handling-operators/catchError-01.js
+  - title: retry
+    code: !readtext error-handling-operators/retry-01.js
+  - title: retryWhen
+    code: !readtext error-handling-operators/retryWhen-01.js
+
+- title: transform operators
+  sections:
+  - title: map
+    code: !readtext transform-operators/map-01.js
+  - title: mapTo
+    code: !readtext transform-operators/mapTo-01.js
+  - title: pairwise
+    code: !readtext transform-operators/pairwise-01.js
+  - title: partition
+    code: !readtext transform-operators/partition-01.js
+  - title: pluck
+    code: !readtext transform-operators/pluck-01.js
+  - title: scan
+    code: !readtext transform-operators/scan-01.js
+  - title: concatMap
+    code: !readtext transform-operators/concatMap-01.js
+  - title: concatMapTo
+    code: !readtext transform-operators/concatMapTo-01.js
+  - title: mergeMap
+    code: !readtext transform-operators/mergeMap-01.js
+  - title: mergeMapTo
+    code: !readtext transform-operators/mergeMapTo-01.js
+  - title: exhaustMap
+    code: !readtext transform-operators/exhaustMap-01.js
+  - title: switchMap
+    code: !readtext transform-operators/switchMap-01.js
+  - title: switchMapTo
+    code: !readtext transform-operators/switchMapTo-01.js
+  - title: switchScan
+    code: !readtext transform-operators/switchScan-01.js
+  - title: buffer
+    code: !readtext transform-operators/buffer-01.js
+  - title: bufferTime
+    code: !readtext transform-operators/bufferTime-01.js
+  - title: bufferCount
+    code: !readtext transform-operators/bufferCount-01.js
+  - title: bufferToggle
+    code: !readtext transform-operators/bufferToggle-01.js
+  - title: bufferWhen
+    code: !readtext transform-operators/bufferWhen-01.js
+  - title: window 01
+    code: !readtext transform-operators/window-01.js
+  - title: window 02
+    code: !readtext transform-operators/window-02.js
+  - title: windowCount
+    code: !readtext transform-operators/windowCount-01.js
+  - title: windowTime
+    code: !readtext transform-operators/windowTime-01.js
+  - title: windowTime 02
+    code: !readtext transform-operators/windowTime-02.js
+  - title: windowToggle
+    code: !readtext transform-operators/windowToggle-01.js
+  - title: windowWhen
+    code: !readtext transform-operators/windowWhen-01.js
+  - title: expand
+    code: !readtext transform-operators/expand-01.js
+  - title: groupBy 01
+    code: !readtext transform-operators/groupBy-01.js
+  - title: groupBy 02
+    code: !readtext transform-operators/groupBy-02.js
+  - title: groupBy 03
+    code: !readtext transform-operators/groupBy-03.js
+  - title: mergeScan 01
+    code: !readtext transform-operators/mergeScan-01.js
+  - title: mergeScan 02
+    code: !readtext transform-operators/mergeScan-02.js
+  - title: mergeScan 03
+    code: !readtext transform-operators/mergeScan-03.js
+
+- title: multicasting operators
+  sections:
+  - title: multicast
+    code: !readtext multicasting-operators/multicast-01.js
+  - title: publish
+    code: !readtext multicasting-operators/publish-01.js
+  - title: connect 01
+    code: !readtext multicasting-operators/connect-01.js
+  - title: connect 02
+    code: !readtext multicasting-operators/connect-02.js
+  - title: connectable
+    code: !readtext multicasting-operators/connectable-01.js
+  - title: publishBehavior
+    code: !readtext multicasting-operators/publishBehavior-01.js
+  - title: publishLast
+    code: !readtext multicasting-operators/publishLast-01.js
+  - title: publishReplay
+    code: !readtext multicasting-operators/publishReplay-01.js
+  - title: share 01
+    code: !readtext multicasting-operators/share-01.js
+  - title: share 02
+    code: !readtext multicasting-operators/share-02.js
+  - title: share 03
+    code: !readtext multicasting-operators/share-03.js
+  - title: share 04
+    code: !readtext multicasting-operators/share-04.js
+
+- title: etc
+  sections:
+  - title: EMPTY
+    code: !readtext etc/EMPTY-01.js
+  - title: NEVER
+    code: !readtext etc/NEVER-01.js
+  - title: identity
+    code: !readtext etc/identity-01.js
+  - title: noop
+    code: !readtext etc/noop-01.js
+  - title: firstValueFrom
+    code: !readtext etc/firstValueFrom-01.js
+  - title: lastValueFrom
+    code: !readtext etc/lastValueFrom-01.js
+
+--- |
+<%- $.outfile('../src/lecture/lecture.json') %>
+<%_
+  $.data.forEach((category, i) => {
+    category.id = `${i+1}`;
+    category.sections.forEach((section, j) => {
+      section.id = `${category.id}.${j+1}`;
+      section.note = section.note || section.title;
+    });
+  });
+_%>
+<%- JSON.stringify($.data, null, 4) %>
+
